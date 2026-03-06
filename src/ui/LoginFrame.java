@@ -1,12 +1,18 @@
 package ui;
 
+import service.LibraryService;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 
 public class LoginFrame extends JFrame {
 
-    public LoginFrame() {
+    private LibraryService library;
+
+    public LoginFrame(LibraryService library) {
+
+        this.library = library;
 
         setTitle("Smart Library Management System");
         setSize(520, 380);
@@ -20,7 +26,7 @@ public class LoginFrame extends JFrame {
         mainPanel.setBackground(new Color(30, 30, 46));
         mainPanel.setBorder(BorderFactory.createEmptyBorder(40, 50, 40, 50));
 
-        // Icon label (book emoji as text)
+        // Icon label
         JLabel iconLabel = new JLabel("\u2588\u2588 LIBRARY");
         iconLabel.setFont(new Font("Consolas", Font.BOLD, 28));
         iconLabel.setForeground(new Color(137, 180, 250));
@@ -66,10 +72,10 @@ public class LoginFrame extends JFrame {
             }
         });
 
-        // Button action — will open DashboardFrame later
+        // Button action — opens DashboardFrame
         enterButton.addActionListener(e -> {
-            System.out.println("Entering dashboard...");
-            // DashboardFrame will be launched here in next stage
+            dispose();
+            new DashboardFrame(library);
         });
 
         // Layout

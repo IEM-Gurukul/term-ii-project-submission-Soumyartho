@@ -28,6 +28,10 @@ public class LibraryService {
         return books.get(bookId);
     }
 
+    public java.util.Collection<Book> getAllBooks() {
+        return books.values();
+    }
+
     // --- User Management ---
 
     public void registerUser(User user) {

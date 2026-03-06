@@ -1,18 +1,16 @@
 import service.LibraryService;
 import ui.LoginFrame;
 
+import javax.swing.SwingUtilities;
+
 public class Main {
 
     public static void main(String[] args) {
 
-        // Load library data
         LibraryService library = new LibraryService();
         library.loadData();
 
-        // Launch GUI on the Event Dispatch Thread (Swing best practice)
-        javax.swing.SwingUtilities.invokeLater(() -> {
-            new LoginFrame();
-        });
+        SwingUtilities.invokeLater(() -> new LoginFrame(library));
 
     }
 
