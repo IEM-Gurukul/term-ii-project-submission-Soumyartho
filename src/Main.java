@@ -9,7 +9,7 @@ public class Main {
     public static void main(String[] args) {
 
         System.out.println("Smart Library Management System Starting...");
-        System.out.println("-------------------------------------------");
+        System.out.println("===========================================");
 
         LibraryService library = new LibraryService();
 
@@ -33,23 +33,30 @@ public class Main {
 
         System.out.println("-------------------------------------------");
 
-        // Search tests
-        System.out.println("Search by title 'Clean':");
-        library.searchBookByTitle("Clean");
-
-        System.out.println();
-        System.out.println("Search by author 'Gamma':");
-        library.searchBookByAuthor("Gamma");
-
-        System.out.println();
-        System.out.println("Search by category 'Fiction':");
-        library.searchBookByCategory("Fiction");
+        // Issue books
+        library.issueBook("B101", "S101");   // Rahul borrows Clean Code
+        library.issueBook("B102", "F201");   // Dr. Sen borrows Design Patterns
 
         System.out.println("-------------------------------------------");
 
-        // Polymorphism demo
-        System.out.println(student.getName() + " max books: " + student.getMaxBooksAllowed());
-        System.out.println(faculty.getName() + " max books: " + faculty.getMaxBooksAllowed());
+        // Show active transactions
+        library.printActiveTransactions();
+
+        System.out.println("-------------------------------------------");
+
+        // Return a book (on time since it was just issued)
+        library.returnBook("B101", "S101");
+
+        System.out.println("-------------------------------------------");
+
+        // Verify availability changed
+        System.out.println("Clean Code available copies: " + b1.getAvailableCopies() + "/" + b1.getTotalCopies());
+
+        // Show active transactions after return
+        library.printActiveTransactions();
+
+        System.out.println("===========================================");
+        System.out.println("All systems operational.");
 
     }
 

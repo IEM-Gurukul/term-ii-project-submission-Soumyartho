@@ -66,6 +66,20 @@ public class Book {
         this.availableCopies = availableCopies;
     }
 
+    // --- State Changes ---
+
+    public void borrowCopy() {
+        if (availableCopies > 0) {
+            availableCopies--;
+        }
+    }
+
+    public void returnCopy() {
+        if (availableCopies < totalCopies) {
+            availableCopies++;
+        }
+    }
+
     // --- Utility ---
 
     public boolean isAvailable() {
