@@ -3,7 +3,9 @@ package service;
 import model.Book;
 import model.User;
 import model.Transaction;
+import util.FileManager;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.ArrayList;
 import java.time.LocalDate;
@@ -180,6 +182,31 @@ public class LibraryService {
         if (!any) {
             System.out.println("  None.");
         }
+    }
+
+    // --- Persistence ---
+
+    public void saveData() {
+        new File("data").mkdirs();
+
+        FileManager.saveObject(books, "data/books.dat");
+        FileManager.saveObject(users, "data/users.dat");
+        FileManager.saveObject(transactions, "data/transactions.dat");
+
+        System.out.println("Library data saved.");
+    }
+
+    @SuppressWarnings("unchecked")
+    public void loadData() {
+        Object b = FileManager.loadObject("data/books.dat");
+        Object u = FileManager.loadObject("data/users.dat");
+        Object t = FileManager.loadObject("data/transactions.dat");
+
+        if (b != null) books = (HashMap<String, Book>) b;
+        if (u != null) users = (HashMap<String, User>) u;
+        if (t != null) transactions = (ArrayList<Transaction>) t;
+
+        System.out.println("Library data loaded. Books: " + books.size() + ", Users: " + users.size() + ", Transactions: " + transactions.size());
     }
 
 }
