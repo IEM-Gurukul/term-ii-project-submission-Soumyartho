@@ -188,6 +188,83 @@ public class LibraryService {
         }
     }
 
+    public java.util.Collection<User> getAllUsers() {
+        return users.values();
+    }
+
+    public ArrayList<Transaction> getActiveTransactions() {
+        ArrayList<Transaction> active = new ArrayList<>();
+        for (Transaction t : transactions) {
+            if (t.isActive()) {
+                active.add(t);
+            }
+        }
+        return active;
+    }
+
+    // --- GUI-friendly methods (return result strings instead of printing) ---
+
+    public String issueBookGUI(String bookId, String userId) {
+
+        Book book = books.get(bookId);
+        User user = users.get(userId);
+
+        if (book == null) return "ERROR:Book ID '" + bookId + "' not found.";
+        if (user == null) return "ERROR:User ID '" + userId + "' not found.";
+
+        if (!book.isAvailable()) {
+            return "ERROR:Book '" + book.getTitle() + "' is currently unavailable.";
+        }
+
+        int activeCount = 0;
+        for (Transaction t : transactions) {
+            if (t.getUserId().equals(userId) && t.isActive()) {
+                activeCount++;
+            }
+        }
+
+        if (activeCount >= user.getMaxBooksAllowed()) {
+            return "ERROR:" + user.getName() + " has reached the max borrow limit (" + user.getMaxBooksAllowed() + ").";
+        }
+
+        LocalDate issueDate = LocalDate.now();
+        LocalDate dueDate = issueDate.plusDays(14);
+
+        String transactionId = "T" + (transactions.size() + 1);
+        Transaction transaction = new Transaction(transactionId, bookId, userId, issueDate, dueDate);
+        transactions.add(transaction);
+        book.borrowCopy();
+
+        return "SUCCESS:" + user.getName() + " borrowed '" + book.getTitle() + "'\nDue on: " + dueDate;
+    }
+
+    public String returnBookGUI(String bookId, String userId) {
+
+        for (Transaction t : transactions) {
+            if (t.getBookId().equals(bookId) &&
+                t.getUserId().equals(userId) &&
+                t.isActive()) {
+
+                LocalDate returnDate = LocalDate.now();
+                t.setReturnDate(returnDate);
+
+                Book book = books.get(bookId);
+                User user = users.get(userId);
+                book.returnCopy();
+
+                if (returnDate.isAfter(t.getDueDate())) {
+                    long daysLate = ChronoUnit.DAYS.between(t.getDueDate(), returnDate);
+                    double fine = user.calculateFine((int) daysLate);
+                    return "SUCCESS:Book returned late by " + daysLate + " day(s).\nFine: Rs." + fine;
+                } else {
+                    return "SUCCESS:" + user.getName() + " returned '" + book.getTitle() + "' on time!";
+                }
+            }
+        }
+
+        return "ERROR:No active borrow found for Book '" + bookId + "' by User '" + userId + "'.";
+    }
+
     // --- Persistence ---
 
     public void saveData() {

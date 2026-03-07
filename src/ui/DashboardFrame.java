@@ -213,22 +213,25 @@ public class DashboardFrame extends JFrame {
         }
     }
 
-    // --- Button Actions (placeholder — will connect dialogs in Stage 8) ---
+    // --- Button Actions ---
 
     private void onAddBook() {
-        JOptionPane.showMessageDialog(this, "Add Book dialog coming in next stage.", "Add Book", JOptionPane.INFORMATION_MESSAGE);
+        new AddBookDialog(this, library);
+        refreshBookTable();
     }
 
     private void onRegisterUser() {
-        JOptionPane.showMessageDialog(this, "Register User dialog coming in next stage.", "Register User", JOptionPane.INFORMATION_MESSAGE);
+        new RegisterUserDialog(this, library);
     }
 
     private void onIssueBook() {
-        JOptionPane.showMessageDialog(this, "Issue Book dialog coming in next stage.", "Issue Book", JOptionPane.INFORMATION_MESSAGE);
+        new IssueBookDialog(this, library);
+        refreshBookTable();
     }
 
     private void onReturnBook() {
-        JOptionPane.showMessageDialog(this, "Return Book dialog coming in next stage.", "Return Book", JOptionPane.INFORMATION_MESSAGE);
+        new ReturnBookDialog(this, library);
+        refreshBookTable();
     }
 
     private void onSearchBooks() {
