@@ -31,3 +31,9 @@ replay_pid*
 
 # Serialized data
 data/
+
+# Build output
+out/
+
+# Keep lib jars (test dependencies)
+!lib/*.jar
