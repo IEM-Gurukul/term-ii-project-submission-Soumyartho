@@ -102,14 +102,25 @@ public class IssueBookDialog extends JDialog {
         }
 
         String result = library.issueBookGUI(bookId, userId);
-        boolean success = result.startsWith("SUCCESS");
         String message = result.substring(result.indexOf(":") + 1);
 
-        JOptionPane.showMessageDialog(this, message, "Issue Book",
-            success ? JOptionPane.INFORMATION_MESSAGE : JOptionPane.WARNING_MESSAGE);
-
-        if (success) {
+        if (result.startsWith("SUCCESS")) {
+            JOptionPane.showMessageDialog(this, message, "Issue Book", JOptionPane.INFORMATION_MESSAGE);
             dispose();
+        } else if (result.startsWith("RESERVE")) {
+            // Book unavailable — offer reservation
+            int choice = JOptionPane.showConfirmDialog(this, message, "Book Unavailable",
+                JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+
+            if (choice == JOptionPane.YES_OPTION) {
+                String reserveResult = library.reserveBook(bookId, userId);
+                String reserveMsg = reserveResult.substring(reserveResult.indexOf(":") + 1);
+                JOptionPane.showMessageDialog(this, reserveMsg, "Reservation",
+                    reserveResult.startsWith("SUCCESS") ? JOptionPane.INFORMATION_MESSAGE : JOptionPane.WARNING_MESSAGE);
+            }
+            dispose();
+        } else {
+            JOptionPane.showMessageDialog(this, message, "Issue Book", JOptionPane.WARNING_MESSAGE);
         }
     }
 

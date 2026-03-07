@@ -119,7 +119,25 @@ public class LibraryServiceTest {
         // Book B002 has only 1 copy
         library.issueBookGUI("B002", "S001");
         String result = library.issueBookGUI("B002", "F001");
-        assertTrue("Should fail when no copies available", result.startsWith("ERROR"));
+        assertTrue("Should offer reservation when no copies available", result.startsWith("RESERVE"));
+    }
+
+    // --- Reservation Tests ---
+
+    @Test
+    public void testReserveBook() {
+        library.issueBookGUI("B002", "S001"); // borrow the only copy
+        String result = library.reserveBook("B002", "F001");
+        assertTrue("Reservation should succeed", result.startsWith("SUCCESS"));
+        assertTrue("Should show queue position", result.contains("Queue position: 1"));
+    }
+
+    @Test
+    public void testDuplicateReservation() {
+        library.issueBookGUI("B002", "S001");
+        library.reserveBook("B002", "F001");
+        String result = library.reserveBook("B002", "F001");
+        assertTrue("Duplicate reservation should fail", result.startsWith("ERROR"));
     }
 
     @Test

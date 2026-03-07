@@ -3,11 +3,16 @@ package service;
 import model.Book;
 import model.User;
 import model.Transaction;
+import model.Reservation;
 import util.FileManager;
 
 import java.io.File;
+import java.io.PrintWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 
@@ -16,6 +21,7 @@ public class LibraryService {
     private HashMap<String, Book> books = new HashMap<>();
     private HashMap<String, User> users = new HashMap<>();
     private ArrayList<Transaction> transactions = new ArrayList<>();
+    private LinkedList<Reservation> reservations = new LinkedList<>();  // Queue (FIFO)
 
     // --- Book Management ---
 
@@ -213,7 +219,7 @@ public class LibraryService {
         if (user == null) return "ERROR:User ID '" + userId + "' not found.";
 
         if (!book.isAvailable()) {
-            return "ERROR:Book '" + book.getTitle() + "' is currently unavailable.";
+            return "RESERVE:Book '" + book.getTitle() + "' is currently unavailable.\nWould you like to reserve it?";
         }
 
         int activeCount = 0;
@@ -255,14 +261,137 @@ public class LibraryService {
                 if (returnDate.isAfter(t.getDueDate())) {
                     long daysLate = ChronoUnit.DAYS.between(t.getDueDate(), returnDate);
                     double fine = user.calculateFine((int) daysLate);
-                    return "SUCCESS:Book returned late by " + daysLate + " day(s).\nFine: Rs." + fine;
+                    String msg = "Book returned late by " + daysLate + " day(s).\nFine: Rs." + fine;
+                    msg += checkReservationQueue(bookId);
+                    return "SUCCESS:" + msg;
                 } else {
-                    return "SUCCESS:" + user.getName() + " returned '" + book.getTitle() + "' on time!";
+                    String msg = user.getName() + " returned '" + book.getTitle() + "' on time!";
+                    msg += checkReservationQueue(bookId);
+                    return "SUCCESS:" + msg;
                 }
             }
         }
 
         return "ERROR:No active borrow found for Book '" + bookId + "' by User '" + userId + "'.";
+    }
+
+    // --- Reservation System (Queue) ---
+
+    public String reserveBook(String bookId, String userId) {
+        Book book = books.get(bookId);
+        User user = users.get(userId);
+
+        if (book == null) return "ERROR:Book ID '" + bookId + "' not found.";
+        if (user == null) return "ERROR:User ID '" + userId + "' not found.";
+
+        // Check if user already has an active reservation for this book
+        for (Reservation r : reservations) {
+            if (r.getBookId().equals(bookId) && r.getUserId().equals(userId) && !r.isFulfilled()) {
+                return "ERROR:" + user.getName() + " already has a reservation for this book.";
+            }
+        }
+
+        String reservationId = "R" + (reservations.size() + 1);
+        Reservation reservation = new Reservation(reservationId, bookId, userId, LocalDate.now());
+        reservations.add(reservation);
+
+        int position = 0;
+        for (Reservation r : reservations) {
+            if (r.getBookId().equals(bookId) && !r.isFulfilled()) {
+                position++;
+            }
+        }
+
+        return "SUCCESS:" + user.getName() + " reserved '" + book.getTitle() + "'\nQueue position: " + position;
+    }
+
+    private String checkReservationQueue(String bookId) {
+        for (Reservation r : reservations) {
+            if (r.getBookId().equals(bookId) && !r.isFulfilled()) {
+                User waiting = users.get(r.getUserId());
+                Book book = books.get(bookId);
+                r.setFulfilled(true);
+                return "\n\nNote: " + waiting.getName() + " had reserved '" + book.getTitle() + "' and should be notified.";
+            }
+        }
+        return "";
+    }
+
+    public LinkedList<Reservation> getActiveReservations() {
+        LinkedList<Reservation> active = new LinkedList<>();
+        for (Reservation r : reservations) {
+            if (!r.isFulfilled()) {
+                active.add(r);
+            }
+        }
+        return active;
+    }
+
+    // --- Export Report ---
+
+    public String exportReport(String filepath) {
+        try (PrintWriter writer = new PrintWriter(new FileWriter(filepath))) {
+
+            writer.println("============================================");
+            writer.println("   SMART LIBRARY MANAGEMENT SYSTEM REPORT");
+            writer.println("   Generated: " + LocalDate.now());
+            writer.println("============================================");
+            writer.println();
+
+            // Books
+            writer.println("--- BOOK CATALOG (" + books.size() + " books) ---");
+            writer.println(String.format("%-8s %-25s %-20s %-15s %s", "ID", "Title", "Author", "Category", "Available"));
+            writer.println("------------------------------------------------------------------------");
+            for (Book book : books.values()) {
+                writer.println(String.format("%-8s %-25s %-20s %-15s %d/%d",
+                    book.getBookId(), book.getTitle(), book.getAuthor(),
+                    book.getCategory(), book.getAvailableCopies(), book.getTotalCopies()));
+            }
+            writer.println();
+
+            // Users
+            writer.println("--- REGISTERED USERS (" + users.size() + " users) ---");
+            writer.println(String.format("%-8s %-20s %-15s %s", "ID", "Name", "Type", "Max Books"));
+            writer.println("--------------------------------------------------------");
+            for (User user : users.values()) {
+                writer.println(String.format("%-8s %-20s %-15s %d",
+                    user.getUserId(), user.getName(),
+                    user.getClass().getSimpleName(), user.getMaxBooksAllowed()));
+            }
+            writer.println();
+
+            // Transactions
+            writer.println("--- ALL TRANSACTIONS (" + transactions.size() + " total) ---");
+            writer.println(String.format("%-6s %-8s %-8s %-12s %-12s %s", "ID", "Book", "User", "Issued", "Due", "Returned"));
+            writer.println("------------------------------------------------------------------------");
+            for (Transaction t : transactions) {
+                writer.println(String.format("%-6s %-8s %-8s %-12s %-12s %s",
+                    t.getTransactionId(), t.getBookId(), t.getUserId(),
+                    t.getIssueDate(), t.getDueDate(),
+                    t.getReturnDate() != null ? t.getReturnDate() : "ACTIVE"));
+            }
+            writer.println();
+
+            // Reservations
+            LinkedList<Reservation> activeRes = getActiveReservations();
+            writer.println("--- ACTIVE RESERVATIONS (" + activeRes.size() + ") ---");
+            for (Reservation r : activeRes) {
+                User u = users.get(r.getUserId());
+                Book b = books.get(r.getBookId());
+                writer.println("  " + (u != null ? u.getName() : r.getUserId()) + " -> " + (b != null ? b.getTitle() : r.getBookId()) + " (since " + r.getReservedDate() + ")");
+            }
+            if (activeRes.isEmpty()) writer.println("  None.");
+
+            writer.println();
+            writer.println("============================================");
+            writer.println("                END OF REPORT");
+            writer.println("============================================");
+
+            return "SUCCESS:Report exported to: " + filepath;
+
+        } catch (IOException e) {
+            return "ERROR:Failed to write report: " + e.getMessage();
+        }
     }
 
     // --- Persistence ---
@@ -273,6 +402,7 @@ public class LibraryService {
         FileManager.saveObject(books, "data/books.dat");
         FileManager.saveObject(users, "data/users.dat");
         FileManager.saveObject(transactions, "data/transactions.dat");
+        FileManager.saveObject(reservations, "data/reservations.dat");
 
         System.out.println("Library data saved.");
     }
@@ -282,12 +412,14 @@ public class LibraryService {
         Object b = FileManager.loadObject("data/books.dat");
         Object u = FileManager.loadObject("data/users.dat");
         Object t = FileManager.loadObject("data/transactions.dat");
+        Object r = FileManager.loadObject("data/reservations.dat");
 
         if (b != null) books = (HashMap<String, Book>) b;
         if (u != null) users = (HashMap<String, User>) u;
         if (t != null) transactions = (ArrayList<Transaction>) t;
+        if (r != null) reservations = (LinkedList<Reservation>) r;
 
-        System.out.println("Library data loaded. Books: " + books.size() + ", Users: " + users.size() + ", Transactions: " + transactions.size());
+        System.out.println("Library data loaded. Books: " + books.size() + ", Users: " + users.size() + ", Transactions: " + transactions.size() + ", Reservations: " + reservations.size());
     }
 
 }

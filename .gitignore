@@ -35,5 +35,8 @@ data/
 # Build output
 out/
 
+# Generated reports
+reports/
+
 # Keep lib jars (test dependencies)
 !lib/*.jar

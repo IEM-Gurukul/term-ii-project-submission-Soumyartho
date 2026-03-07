@@ -94,6 +94,8 @@ public class DashboardFrame extends JFrame {
         panel.add(createSideButton("Return Book", ACCENT_MAUVE, e -> onReturnBook()));
         panel.add(Box.createRigidArea(new Dimension(0, 6)));
         panel.add(createSideButton("Search Books", TEXT_PRIMARY, e -> onSearchBooks()));
+        panel.add(Box.createRigidArea(new Dimension(0, 6)));
+        panel.add(createSideButton("Export Report", new Color(249, 226, 175), e -> onExportReport()));
 
         panel.add(Box.createVerticalGlue());
 
@@ -259,6 +261,18 @@ public class DashboardFrame extends JFrame {
                 refreshBookTable();
             }
         }
+    }
+
+    private void onExportReport() {
+        String dir = "reports";
+        new java.io.File(dir).mkdirs();
+        String filename = dir + "/library_report_" + java.time.LocalDate.now() + ".txt";
+
+        String result = library.exportReport(filename);
+        String message = result.substring(result.indexOf(":") + 1);
+
+        JOptionPane.showMessageDialog(this, message, "Export Report",
+            result.startsWith("SUCCESS") ? JOptionPane.INFORMATION_MESSAGE : JOptionPane.ERROR_MESSAGE);
     }
 
     private void onSaveAndExit() {
