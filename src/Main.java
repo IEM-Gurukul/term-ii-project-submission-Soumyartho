@@ -1,4 +1,5 @@
 import service.LibraryService;
+import util.DataSeeder;
 import ui.LoginFrame;
 
 import javax.swing.SwingUtilities;
@@ -9,6 +10,11 @@ public class Main {
 
         LibraryService library = new LibraryService();
         library.loadData();
+
+        // Seed sample data on first launch (when library is empty)
+        if (library.getAllBooks().isEmpty()) {
+            DataSeeder.seed(library);
+        }
 
         // Background thread: auto-saves library data every 60 seconds
         // Demonstrates practical use of Threading in a GUI application
