@@ -1,55 +1,44 @@
-[![Review Assignment Due Date](https://classroom.github.com/assets/deadline-readme-button-22041afd0340ce965d47ae6ef1cefeee28c7c493a6346c4f15d667ab976d596c.svg)](https://classroom.github.com/a/pG3gvzt-)
-# PCCCS495 – Term II Project
+# Smart Library Management System with Reservation and Role-Based Access
 
-## Project Title
-**Smart Library Management System**
----
-
-## Problem Statement (max 150 words)
-Managing a library's books, users, and transactions manually is error-prone, time-consuming, and difficult to scale. Librarians struggle to track available books, borrowed items, due dates, overdue fines, and reservations without software support. This project provides a robust Java desktop application using Swing to automate these core library operations. It enables efficient cataloging, role-based user registration (students and faculty), transaction processing with fine calculation, and a FIFO reservation queue for unavailable books. The system ensures data persistence through serialization and features a background auto-save mechanism, offering a complete, object-oriented solution to modern library management challenges.
----
+## Problem Statement
+Many small libraries manage their book records and borrowing activities manually or with simple systems. This makes it difficult to track issued books, borrowers, and due dates, leading to errors like misplaced records, incorrect fine calculations, and catalog disorganization. Furthermore, manual systems lack the ability to manage book reservations when all copies are already issued. This project proposes a Smart Library Management System that organizes these activities through a desktop application. The system allows librarians to manage books, register members, track issued books, handle reservations automatically, and dynamically calculate fines for late returns based on user roles. By digitizing these tasks, the system makes library management faster, more accurate, and easier to maintain.
 
 ## Target User
-Librarians, university administrators, students, and faculty members who need a reliable system to track book availability, manage borrowing limits, and handle reservations seamlessly.
----
+Librarians and library administrators responsible for managing book inventory, handling member registrations, and overseeing the borrowing, returning, and reservation processes of the library.
 
 ## Core Features
-
-- **Book Catalog & User Management:** Add books with total copy tracking and register members as Students or Faculty with distinct borrowing limits.
-- **Issue & Return Processing:** Automate book lending, enforce maximum borrow limits, calculate late fines based on user roles, and track active transactions.
-- **Reservation System (FIFO):** Allow users to reserve unavailable books, queueing requests and automatically notifying them when the book is returned.
-- **Data Persistence & Reporting:** Automatically save all data to disk via a background thread, and export comprehensive system reports containing catalogs, users, transactions, and reservations.
-
----
+- Book Inventory Management: Add new books to the catalog and track available copies.
+- Member Registration: Register users with different roles (Student and Faculty).
+- Borrowing and Returns: Issue books to users and process returns with deadline enforcement.
+- Role-Based Fine Calculation: Automatically calculate fines based on user type if a book is returned late.
+- Reservation System (Queue): Allow users to reserve a book when all copies are currently issued, utilizing a FIFO queue system.
+- Robust Search: Filter the library catalog by title, author, or category.
+- Data Persistence: Automatically save and load data across sessions.
+- Reporting: Export comprehensive library reports containing catalogs, users, active transactions, and reservations.
 
 ## OOP Concepts Used
+- **Abstraction**: Implemented an abstract `User` class to define the common structure and contract for all library members without allowing direct instantiation of a generic user.
+- **Inheritance**: Created `StudentMember` and `FacultyMember` classes that inherit from the abstract `User` base class, reusing common attributes such as user ID and name.
+- **Polymorphism**: Overridden methods `getMaxBooksAllowed()` and `calculateFine()` in the subclass implementations. A student has a limit of 3 books and a higher daily fine, while a faculty member has a limit of 5 books and a lower fine. The system determines the behavior dynamically at runtime.
+- **Encapsulation**: Used private access modifiers for the internal state of classes (like `Book` and `Transaction`) and exposed controlled access via public getter and setter methods to prevent unauthorized data mutation.
 
-- **Abstraction:** The `User` abstract class defines the shared template, forcing implementation of `getMaxBooksAllowed()` and `calculateFine()` in subclasses.
-- **Inheritance:** `StudentMember` and `FacultyMember` extend the abstract `User` class to inherit common attributes while providing specific borrowing rules.
-- **Polymorphism:** `LibraryService` calculates fines dynamically based on the actual subclass type (e.g., student vs. faculty rates) using a common `User` reference.
-- **Exception Handling:** Custom checked exceptions (`BookUnavailableException`, `UserLimitExceededException`) handle specific business logic violations gracefully.
-- **Collections / Threads:** Uses `HashMap` (O(1) lookups), `ArrayList` (ordered logging), and `LinkedList` (FIFO queue for reservations). A daemon `Thread` runs continuously in the background to auto-save data every 60 seconds without freezing the GUI.
+## Architecture Description
+The project is designed using a layered, separation-of-concerns architecture consisting of four main layers:
+- **Model Layer (`src/model`)**: Contains the core data structures and entities of the system, including `Book`, `User`, `Transaction`, and `Reservation`. 
+- **Service Layer (`src/service`)**: Encapsulates the business logic of the application. The `LibraryService` class handles all computations, queue management, and rule enforcement independent of the user interface.
+- **Utility Layer (`src/util`)**: Provides helper functionalities. `FileManager` facilitates object serialization for data persistence, and `DataSeeder` handles initial state population.
+- **UI Layer (`src/ui`)**: Implements the graphical user interface using Java Swing. It consists of windows and dialogs (`LoginFrame`, `DashboardFrame`, `IssueBookDialog`) that interact only with the Service Layer and do not contain business logic.
 
----
+## How to Run Instructions
+1. Open a terminal or command prompt.
+2. Navigate to the root directory of the project.
+3. Compile the Java source files using the following command:
+   ```bash
+   javac src/model/*.java src/util/*.java src/service/*.java src/ui/*.java src/Main.java
+   ```
+4. Run the application using the following command:
+   ```bash
+   java -cp src Main
+   ```
 
-## Proposed Architecture Description
-The application follows a clean **Model-Service-UI** architecture:
-1. **Model Layer (`model` package):** Defines the core entities—`Book`, abstract `User` (and concrete `StudentMember`, `FacultyMember`), `Transaction`, and `Reservation`. All data structures are `Serializable` for easy persistence.
-2. **Service Layer (`service` package):** The `LibraryService` acts as the central engine containing the business logic (issuing, returning, reserving, finding books). It delegates persistence tasks to the `FileManager`.
-3. **UI Layer (`ui` package):** Built with Java Swing, featuring a main `DashboardFrame` that observes the service layer, displaying data in a `JTable` and accepting user input via dedicated modal `JDialog`s (e.g., `AddBookDialog`, `IssueBookDialog`).
-4. **Utility Layer (`util` package):** Contains helpers for Object stream I/O (`FileManager`) and initial sample data generation (`DataSeeder`).
-
----
-
-## How to Run
-1. Ensure you have the Java Development Kit (JDK 8 or higher) installed.
-2. Compile the source code from the `src` directory:
-   `javac -d out src/**/*.java`
-3. Run the application from the output directory:
-   `java -cp out Main`
-4. On the first launch, the system will automatically seed demo data. Click "Enter System" on the login screen to access the Dashboard.
-
----
-
-## Git Discipline Notes
-Minimum 10 meaningful commits required. *(Note: This project contains 13 logical commits demonstrating incremental, phased development from setup to advanced features).*
+Note: The system requires Java Development Kit (JDK) installed on your machine to compile and run. Ensure the terminal is running in the project root directory where the `src` folder is located.
