@@ -1,0 +1,121 @@
+classDiagram
+    direction TB
+
+    class User {
+        <<abstract>>
+        #userId : String
+        #name : String
+        +getUserId() String
+        +getName() String
+        +getMaxBooksAllowed() int*
+        +calculateFine(daysLate int) double*
+        +toString() String
+    }
+
+    class StudentMember {
+        +StudentMember(userId String, name String)
+        +getMaxBooksAllowed() int
+        +calculateFine(daysLate int) double
+    }
+
+    class FacultyMember {
+        +FacultyMember(userId String, name String)
+        +getMaxBooksAllowed() int
+        +calculateFine(daysLate int) double
+    }
+
+    class Book {
+        -bookId : String
+        -title : String
+        -author : String
+        -category : String
+        -totalCopies : int
+        -availableCopies : int
+        +borrowCopy() void
+        +returnCopy() void
+        +isAvailable() boolean
+        +getBookId() String
+        +getTitle() String
+        +getAuthor() String
+        +getAvailableCopies() int
+    }
+
+    class Transaction {
+        -transactionId : String
+        -bookId : String
+        -userId : String
+        -issueDate : LocalDate
+        -dueDate : LocalDate
+        -returnDate : LocalDate
+        +isActive() boolean
+        +setReturnDate(date LocalDate) void
+        +getTransactionId() String
+        +getBookId() String
+        +getUserId() String
+        +getDueDate() LocalDate
+    }
+
+    class Reservation {
+        -reservationId : String
+        -bookId : String
+        -userId : String
+        -reservedDate : LocalDate
+        -fulfilled : boolean
+        +isFulfilled() boolean
+        +setFulfilled(status boolean) void
+        +getReservationId() String
+        +getBookId() String
+        +getUserId() String
+    }
+
+    class LibraryService {
+        -books : HashMap~String, Book~
+        -users : HashMap~String, User~
+        -transactions : ArrayList~Transaction~
+        -reservations : LinkedList~Reservation~
+        +addBook(book Book) void
+        +registerUser(user User) void
+        +issueBookGUI(bookId String, userId String) String
+        +returnBookGUI(bookId String, userId String) String
+        +reserveBook(bookId String, userId String) String
+        +exportReport(filepath String) String
+        +saveData() void
+        +loadData() void
+        +getAllBooks() Collection~Book~
+        +getAllUsers() Collection~User~
+        +getActiveTransactions() ArrayList~Transaction~
+    }
+
+    class FileManager {
+        <<utility>>
+        +saveObject(data Object, filename String) void$
+        +loadObject(filename String) Object$
+    }
+
+    class BookUnavailableException {
+        <<Exception>>
+        +BookUnavailableException(message String)
+    }
+
+    class UserLimitExceededException {
+        <<Exception>>
+        +UserLimitExceededException(message String)
+    }
+
+    User <|-- StudentMember : extends
+    User <|-- FacultyMember : extends
+
+    Exception <|-- BookUnavailableException : extends
+    Exception <|-- UserLimitExceededException : extends
+
+    LibraryService "1" --> "0..*" Book : manages
+    LibraryService "1" --> "0..*" User : manages
+    LibraryService "1" --> "0..*" Transaction : records
+    LibraryService "1" --> "0..*" Reservation : queues (FIFO)
+
+    LibraryService ..> FileManager : uses
+
+    Transaction --> Book : references
+    Transaction --> User : references
+    Reservation --> Book : references
+    Reservation --> User : references

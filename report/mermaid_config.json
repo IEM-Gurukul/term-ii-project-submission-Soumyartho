@@ -1,0 +1,17 @@
+{
+  "theme": "default",
+  "themeVariables": {
+    "fontSize": "16px",
+    "fontFamily": "Times New Roman, serif",
+    "primaryColor": "#dae8fc",
+    "primaryBorderColor": "#6c8ebf",
+    "secondaryColor": "#d5e8d4",
+    "secondaryBorderColor": "#82b366",
+    "tertiaryColor": "#fff2cc",
+    "tertiaryBorderColor": "#d6b656",
+    "lineColor": "#333333",
+    "textColor": "#000000",
+    "classBorder": "#6c8ebf",
+    "classBackground": "#dae8fc"
+  }
+}
