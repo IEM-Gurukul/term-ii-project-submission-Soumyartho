@@ -1,3 +1,8 @@
+### Smart Library Management System — UML Class Diagram
+
+This diagram was generated using Mermaid. It captures the core structure of the application, including models, services, and the persistence layer.
+
+```mermaid
 classDiagram
     direction TB
 
@@ -102,20 +107,28 @@ classDiagram
         +UserLimitExceededException(message String)
     }
 
+    %% Inheritance (Generalization) — hollow triangle arrow
     User <|-- StudentMember : extends
     User <|-- FacultyMember : extends
 
+    %% Exception hierarchy
     Exception <|-- BookUnavailableException : extends
     Exception <|-- UserLimitExceededException : extends
 
+    %% Associations — LibraryService manages all domain objects
     LibraryService "1" --> "0..*" Book : manages
     LibraryService "1" --> "0..*" User : manages
     LibraryService "1" --> "0..*" Transaction : records
     LibraryService "1" --> "0..*" Reservation : queues (FIFO)
 
+    %% Dependency — LibraryService uses FileManager for persistence
     LibraryService ..> FileManager : uses
 
+    %% Associations between entities
     Transaction --> Book : references
     Transaction --> User : references
     Reservation --> Book : references
     Reservation --> User : references
+```
+
+![UML Class Diagram](UML_Class_Diagram.png)
